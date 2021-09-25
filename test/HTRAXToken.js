@@ -19,6 +19,7 @@ let MINTER_ROLE;
 let CONTRACT_MANAGER_ROLE;
 let RISK_MANAGER_ROLE;
 let EXECUTOR_ROLE;
+let timeNow;
 
 beforeEach(async () => {
   HTRAXToken = await ethers.getContractFactory("HTRAXToken");
@@ -31,6 +32,7 @@ beforeEach(async () => {
   CONTRACT_MANAGER_ROLE = await htraxToken.CONTRACT_MANAGER_ROLE();
   RISK_MANAGER_ROLE = await htraxToken.RISK_MANAGER_ROLE();
   EXECUTOR_ROLE = await htraxToken.EXECUTOR_ROLE();
+  timeNow = time.latest();
 });
 
 describe("Deployment should assign the total supply of tokens to the owner", function () {
@@ -116,7 +118,7 @@ describe("Token timelock function", function () {
     await htraxToken.transfer(user_executor_role.address, 10000);
 
     await htraxToken.grantRole(EXECUTOR_ROLE, user_executor_role.address);
-    await htraxToken.connect(user_executor_role).transferLockedTokens(addr1.address, 10000, 10000, 1632596400, 3600, 1000);
+    await htraxToken.connect(user_executor_role).transferLockedTokens(addr1.address, 10000, 10000, timeNow, 3600, 1000);
     const addr1_balance = await htraxToken.balanceOf(addr1.address);    
     expect(addr1_balance.toString()).to.equal('10000');
 
@@ -128,7 +130,7 @@ describe("Token timelock function", function () {
     await htraxToken.transfer(user_executor_role.address, 10000);
 
     await htraxToken.grantRole(EXECUTOR_ROLE, user_executor_role.address);
-    await htraxToken.connect(user_executor_role).transferLockedTokens(addr1.address, 10000, 10000, 1632596400, 3600, 1000);
+    await htraxToken.connect(user_executor_role).transferLockedTokens(addr1.address, 10000, 10000, timeNow, 3600, 1000);
     const addr1_balance = await htraxToken.balanceOf(addr1.address);    
     expect(addr1_balance.toString()).to.equal('10000');
 
