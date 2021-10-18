@@ -25,10 +25,13 @@
     "@openzeppelin/test-helpers": "^0.5.13",
     "ethers": "^5.0.0",
     "hardhat": "^2.6.1",
+    "hardhat-gas-reporter": "^1.0.4",
     "web3": "^1.5.3"
   },
   "dependencies": {
     "@openzeppelin/contracts": "^4.3.0",
-    "chai": "^4.3.4"
+    "bn-chai": "^1.0.1",
+    "chai": "^4.3.4",
+    "hardhat-storage-layout": "^0.1.6"
   }
 }

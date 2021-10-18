@@ -1,38 +1,26 @@
 // contracts/HTRAXToken.sol
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.6;
+pragma solidity 0.8.9;
 
 import "./access/Ownable.sol";
 import "./security/Pausable.sol";
 import "./access/AccessControl.sol";
 import "./token/ERC20/ERC20.sol";
 import "./token/ERC20/extensions/ERC20Snapshot.sol";
+import "./HTRAXTokenSale.sol";
 
-contract HTRAXToken is ERC20, ERC20Snapshot, Ownable, Pausable, AccessControl   {
+contract HTRAXToken is ERC20, ERC20Snapshot, Ownable, Pausable, AccessControl, HTRAXTokenSale {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
-    bytes32 public constant CONTRACT_MANAGER_ROLE = keccak256("CONTRACT_MANAGER_ROLE");
-    bytes32 public constant RISK_MANAGER_ROLE = keccak256("RISK_MANAGER_ROLE");    
     bytes32 public constant EXECUTOR_ROLE = keccak256("EXECUTOR_ROLE");
+    bytes32 public constant RISK_MANAGER_ROLE = keccak256("RISK_MANAGER_ROLE");
 
     uint256 private immutable _cap = 375000000 * (10 ** uint256(decimals())); 
     string private _symbol = "HTRAX";
     string private _name = "HTRAX Token";
 
-    bool public limitTransactions;
-    mapping(address => bool) public limitTransactionsWhiteList;
-    mapping(address => uint) public lastTXBlock;
     mapping(address => bool) public isBlackListed;
-    
-    struct TimeLock {
-        uint256 totalAmount;
-        uint256 lockedAmount;
-        uint128 startDate; // Unix Epoch timestamp
-        uint64 timeInterval; // Unix Epoch timestamp
-        uint256 tokenRelease;
-    }
-    mapping (address => TimeLock[]) public timeLocks; 
-        
+   
     constructor() 
     ERC20(_name, _symbol)
     {
@@ -45,7 +33,8 @@ contract HTRAXToken is ERC20, ERC20Snapshot, Ownable, Pausable, AccessControl   
      event AddedBlackList(address _address);
      event RemovedBlackList(address _address);
 
-    function mint(address account, uint256 amount) public onlyOwner {
+    function mint(address account, uint256 amount) public {
+        require(hasRole(MINTER_ROLE, _msgSender()), "Caller is not a minter");
         require(ERC20.totalSupply() + amount <= _cap, "cap exceeded");
         super._mint(account, amount);
     }
@@ -53,18 +42,6 @@ contract HTRAXToken is ERC20, ERC20Snapshot, Ownable, Pausable, AccessControl   
     function cap() public view virtual returns (uint256) {
         return _cap;
     } 
-
-    function getLockedBalanceLength(address account) public view returns (uint) {
-        return timeLocks[account].length;
-    }
-
-    function getTotalLockedBalance(address account) public view returns (uint256) {
-        uint256 lockedBalance = 0;
-        for(uint i = 0 ; i<getLockedBalanceLength(account); i++) {
-            lockedBalance += timeLocks[account][i].lockedAmount;
-        }        
-        return lockedBalance;
-    }        
 
     function burn(uint256 amount) public {
         require(hasRole(BURNER_ROLE, _msgSender()), "Caller is not a burner");
@@ -78,7 +55,7 @@ contract HTRAXToken is ERC20, ERC20Snapshot, Ownable, Pausable, AccessControl   
         require(currentAllowance >= amount, "ERC20: burn amount exceeds allowance");
         _approve(account, _msgSender(), currentAllowance - amount);
         _burn(account, amount);
-    }             
+    }
 
     function snapshot() public {
         require(hasRole(RISK_MANAGER_ROLE, _msgSender()), "Caller is not a risk manager");
@@ -93,26 +70,20 @@ contract HTRAXToken is ERC20, ERC20Snapshot, Ownable, Pausable, AccessControl   
     function unpause() public {
         require(hasRole(RISK_MANAGER_ROLE, _msgSender()), "Caller is not a risk manager");
         _unpause();
-    }
+    } 
 
-    function enableTransactionLimit() public {
-        require(hasRole(CONTRACT_MANAGER_ROLE, _msgSender()), "Caller is not a contract manager");
-        limitTransactions = true;
-    }
-    
-    function disableTransactionLimit() public {
-        require(hasRole(CONTRACT_MANAGER_ROLE, _msgSender()), "Caller is not a contract manager");
-        limitTransactions = false;
-    }
-    
-    function includeTransactionsWhiteList(address account) public {
-        require(hasRole(CONTRACT_MANAGER_ROLE, _msgSender()), "Caller is not a contract manager");
-        limitTransactionsWhiteList[account] = true;
-    }
-    
-    function removeTransactionsWhiteList(address account) public {
-        require(hasRole(CONTRACT_MANAGER_ROLE, _msgSender()), "Caller is not a contract manager");
-        limitTransactionsWhiteList[account] = false;
+    function transfer(address _to, uint256 _value) override public returns (bool success) {      
+        uint256 senderAvailableBalance = balanceOf(_msgSender()) - getTotalLockedBalance(_msgSender());
+        require(_value <= senderAvailableBalance, "Transfer amount exceeds locked balance");
+
+        return super.transfer(_to, _value);
+    }     
+
+    function transferFrom(address _from, address _to, uint256 _value) override public returns (bool success) {
+        uint256 senderAvailableBalance = balanceOf(_from) - getTotalLockedBalance(_msgSender());
+        require(_value <= senderAvailableBalance, "Transfer amount exceeds locked balance");
+
+        return super.transferFrom(_from, _to, _value);
     }
 
     function addBlackList(address[] memory _address) public {
@@ -135,39 +106,22 @@ contract HTRAXToken is ERC20, ERC20Snapshot, Ownable, Pausable, AccessControl   
                 emit RemovedBlackList(_address[i]);
             }
         }
-    }  
-
-    function checkTransferLimit() internal returns (bool txAllowed) {
-        if (limitTransactions == true && limitTransactionsWhiteList[_msgSender()] != true) {
-            if (lastTXBlock[_msgSender()] == block.number) {
-                return false;
-            } else {
-                lastTXBlock[_msgSender()] = block.number;
-                return true;
-            }
-        } else {
-            return true;
-        }
     }
 
-    function transferLockedTokens(address recipient, uint totalAmount, uint256 lockedAmount, uint128 startDate, uint64 timeInterval, uint256 tokenRelease) public {
+    function transferLockedTokens(address recipient, uint totalAmount, uint256 lockedAmount, uint128 startDate, 
+    uint64 timeInterval, uint256 tokenRelease) public {
         require(hasRole(EXECUTOR_ROLE, _msgSender()), "Caller is not a executor");
         timeLocks[recipient].push(TimeLock(totalAmount, lockedAmount, uint128(startDate), timeInterval, tokenRelease));
         transfer(recipient, totalAmount);
     }
 
-    function releaseLockedTokens(address account) public {
-        for(uint i = 0 ; i<getLockedBalanceLength(account); i++) {        
-            uint256 timeDiff = block.timestamp - uint256(timeLocks[account][i].startDate);
-            uint256 steps = (timeDiff / uint256(timeLocks[account][i].timeInterval));
-            uint256 unlockableAmount = (uint256(timeLocks[account][i].tokenRelease) * steps);
-            if (unlockableAmount >= timeLocks[account][i].totalAmount) {
-                timeLocks[account][i].lockedAmount = 0;
-            } else {
-                timeLocks[account][i].lockedAmount = timeLocks[account][i].totalAmount - unlockableAmount;
-            }
-        }
-    }          
+    function transferDiscountedTokens(address recipient, uint totalAmount) public {
+        require(hasRole(EXECUTOR_ROLE, _msgSender()), "Caller is not a executor");
+        uint256 discountedAmount = getDiscountDetails(totalAmount);
+        require(discountedAmount <= balanceOf(_msgSender()), "Transfer amount more then account balance");
+        addDiscountTokenLockDetails(recipient, discountedAmount);
+        transfer(recipient, discountedAmount);
+    }      
 
     function _beforeTokenTransfer(address from, address to, uint256 amount)
         internal
@@ -175,8 +129,7 @@ contract HTRAXToken is ERC20, ERC20Snapshot, Ownable, Pausable, AccessControl   
         override(ERC20, ERC20Snapshot)
     {
         require(!isBlackListed[from], 'Transfers not allowed');
-        require(!isBlackListed[to], 'Transfers not allowed');       
-        require(checkTransferLimit(), "Transfers are limited to 1 per block");
+        require(!isBlackListed[to], 'Transfers not allowed');
 
         super._beforeTokenTransfer(from, to, amount);       
     }         

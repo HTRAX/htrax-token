@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.8.6;
+pragma solidity 0.8.9;
 
 /*
  * @dev Provides information about the current execution context, including the
@@ -18,7 +18,10 @@ abstract contract Context {
     }
 
     function _msgData() internal view virtual returns (bytes calldata) {
-        this; // silence state mutability warning without generating bytecode - see https://github.com/ethereum/solidity/issues/2691
+        // silence state mutability warning without generating bytecode
+        // see https://github.com/ethereum/solidity/issues/2691
+        this;
+
         return msg.data;
     }
 }
