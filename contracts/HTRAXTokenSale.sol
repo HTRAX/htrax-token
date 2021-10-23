@@ -22,10 +22,16 @@ abstract contract HTRAXTokenSale is AccessControl {
     }
     mapping (address => TimeLock[]) internal timeLocks;
 
+    /**
+     * @dev Get count of how many times wallet address have locked tokens.
+     */ 
     function getLockedBalanceLength(address account) public view virtual returns (uint) {
         return timeLocks[account].length;
     }
 
+    /**
+     * @dev Get total number of locked tokens for given wallet address.
+     */ 
     function getTotalLockedBalance(address account) public view virtual returns (uint256) {
         uint256 lockedBalance = 0;
         for(uint i = 0 ; i<getLockedBalanceLength(account); i++) {
@@ -34,50 +40,90 @@ abstract contract HTRAXTokenSale is AccessControl {
         return lockedBalance;
     }
 
+    /**
+     * @dev Caller with pre sales manager role can set token sale start date
+     * - _startDate: start date needs to be in Unix timestamp
+     */
     function setSaleStartDate(uint128 _startDate) public {
         require(hasRole(PRESALES_MANAGER_ROLE, _msgSender()), "Caller is not a presales manager");
         saleStartDate = _startDate;
     }
 
+    /**
+     * @dev returns token sale start date in Unix timestamp 
+     */
     function getSaleStartDate() public view virtual returns (uint128) {
         return saleStartDate;
     } 
 
+    /**
+     * @dev Caller with pre sales manager role can set token sale end date
+     * - _endDate: end date needs to be in Unix timestamp
+     */
     function setSaleEndDate(uint128 _endDate) public {
         require(hasRole(PRESALES_MANAGER_ROLE, _msgSender()), "Caller is not a presales manager");
         saleEndDate = _endDate;
     }
 
+    /**
+     * @dev returns token sale end date in Unix timestamp 
+     */
     function getSaleEndDate() public view virtual returns (uint128) {
         return saleEndDate;
     }    
 
-    function setLevel1Value(uint256 _levelAmount) public {
+    /**
+     * @dev Caller with pre sales manager role can set token amount for level1.
+     * - _tokenAmount: token need to specify in format: _tokenAmount *10^18
+     */
+    function setLevel1Value(uint256 _tokenAmount) public {
         require(hasRole(PRESALES_MANAGER_ROLE, _msgSender()), "Caller is not a presales manager");
-        level1 = _levelAmount;
+        level1 = _tokenAmount;
     }    
     
-    function setLevel2Value(uint256 _levelAmount) public {
+    /**
+     * @dev Caller with pre sales manager role can set token amount for level2.
+     * - _tokenAmount: token need to specify in format: _tokenAmount *10^18
+     */    
+    function setLevel2Value(uint256 _tokenAmount) public {
         require(hasRole(PRESALES_MANAGER_ROLE, _msgSender()), "Caller is not a presales manager");
-        level2 = _levelAmount;
+        level2 = _tokenAmount;
     }
 
-    function setLevel3Value(uint256 _levelAmount) public {
+    /**
+     * @dev Caller with pre sales manager role can set token amount for level3.
+     * - _tokenAmount: token need to specify in format: _tokenAmount *10^18
+     */
+    function setLevel3Value(uint256 _tokenAmount) public {
         require(hasRole(PRESALES_MANAGER_ROLE, _msgSender()), "Caller is not a presales manager");
-        level3 = _levelAmount;
+        level3 = _tokenAmount;
     }
 
+    /**
+     * @dev returns Level1 token amount in format _tokenAmount *10^18
+     */
     function getLevel1Value() public view virtual returns (uint256) {
         return level1;
     }      
 
+    /**
+     * @dev returns Level2 token amount in format _tokenAmount *10^18
+     */
     function getLevel2Value() public view virtual returns (uint256) {
         return level2;
     }   
 
+    /**
+     * @dev returns Level3 token amount in format _tokenAmount *10^18
+     */
     function getLevel3Value() public view virtual returns (uint256) {
         return level3;
-    }       
+    }
+
+    /**
+     * @dev Caller can release locked tokens.
+     * - account: wallet address from where tokens need to be released
+     */     
     function releaseLockedTokens(address account) public {
         for(uint i = 0; i < getLockedBalanceLength(account); i++) {        
             unchecked {
@@ -93,6 +139,20 @@ abstract contract HTRAXTokenSale is AccessControl {
         }
     }
 
+    /**
+     * @dev Caller can get token discount details. 
+     * Based on entered token amount discount will be displayed.
+     * - totalAmount: Amount of token need to be in format: totalAmount *10^18 
+     *
+     * Requirements:
+     *
+     * - `saleStartDate` needs to be configured. See {HTRAXTokenSale-setSaleStartDate}
+     * - `saleEndDate` needs to be configured. See {HTRAXTokenSale-setSaleEndDate}
+     *     
+     * - `level1` needs to be configured. See {HTRAXTokenSale-setLevel1Value}
+     * - `level2` needs to be configured. See {HTRAXTokenSale-setLevel2Value}
+     * - `level3` needs to be configured. See {HTRAXTokenSale-setLevel2Value}
+     */  
     function getDiscountDetails(uint totalAmount) public view virtual returns (uint256 discountedAmount){
         if(block.timestamp >= saleStartDate && block.timestamp <= saleEndDate)
         {
@@ -112,24 +172,34 @@ abstract contract HTRAXTokenSale is AccessControl {
         return discountedAmount;
     }
 
+    /**
+     * @dev Internal call to transfer locked tokens.
+     * - recipient: wallet address of the user where tokens needs to transfer
+     * - totalAmount: amount of token that need to be TRANSFER in format: _value *10^18
+     *
+     * - Lock 10% of total token amount for 6 months from transfer date
+     * - Lock 30% of total token amount for 12 months from transfer date
+     * - Lock 30% of total token amount for 18 months from transfer date
+     * - Lock 30% of total token amount for 24 months from transfer date
+     */
     function addDiscountTokenLockDetails(address recipient, uint256 tokenAmount) internal {
-        // Release 10% after 6 months from transfer date
+        // Lock 10% of total token amount for 6 months from transfer date
         uint256 lockedAmount10 = (tokenAmount*10)/100;
         timeLocks[recipient].push(TimeLock(lockedAmount10, lockedAmount10, 
         uint128(block.timestamp), 15778463, lockedAmount10));
 
-        //uint256 lockedAmount30 = (tokenAmount*30)/100;
+        // Devide rest 90% of tokens to three equal amount for further lock 
         uint256 lockedAmount30 = ((tokenAmount-lockedAmount10)/3);
 
-        // Release 30% after 12 months from transfer date
+        // Lock 30% of total token amount for 12 months from transfer date
         timeLocks[recipient].push(TimeLock(lockedAmount30, lockedAmount30, 
         uint128(block.timestamp), 31556926, lockedAmount30));
 
-        // Release 30% after 18 months from transfer date
+        // Lock 30% of total token amount for 18 months from transfer date
         timeLocks[recipient].push(TimeLock(lockedAmount30, lockedAmount30, 
         uint128(block.timestamp), 47335389, lockedAmount30));
 
-        // Release 30% after 24 months from transfer date
+        // Lock 30% of total token amount for 24 months from transfer date
         timeLocks[recipient].push(TimeLock(lockedAmount30, lockedAmount30, 
         uint128(block.timestamp), 63113852, lockedAmount30));                
     }    

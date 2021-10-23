@@ -28,26 +28,39 @@ contract HTRAXToken is ERC20, ERC20Snapshot, Ownable, Pausable, AccessControl, H
 
         // token release for phase-1
         _mint(_msgSender(), 93750000 * (10 ** uint256(decimals())));
-    }    
+    }
 
      event AddedBlackList(address _address);
      event RemovedBlackList(address _address);
 
+    /**
+     * @dev caller with minter role can mint the token
+     */
     function mint(address account, uint256 amount) public {
         require(hasRole(MINTER_ROLE, _msgSender()), "Caller is not a minter");
         require(ERC20.totalSupply() + amount <= _cap, "cap exceeded");
         super._mint(account, amount);
     }
 
+    /**
+     * @dev Returns total cap of the token
+     */
     function cap() public view virtual returns (uint256) {
         return _cap;
     } 
 
+    /**
+     * @dev See {ERC20-_burn}.    
+     * @dev caller with burner role can burn the token
+     */
     function burn(uint256 amount) public {
         require(hasRole(BURNER_ROLE, _msgSender()), "Caller is not a burner");
         _burn(_msgSender(), amount);
     }
 
+    /**
+     * @dev See {ERC20-burnFrom}.    
+     */
     function burnFrom(address account, uint256 amount) public {
         require(hasRole(BURNER_ROLE, _msgSender()), "Caller is not a burner");
 
@@ -57,21 +70,35 @@ contract HTRAXToken is ERC20, ERC20Snapshot, Ownable, Pausable, AccessControl, H
         _burn(account, amount);
     }
 
+    /**
+     * @dev caller with risk manager role can create a snapshot
+     */
     function snapshot() public {
         require(hasRole(RISK_MANAGER_ROLE, _msgSender()), "Caller is not a risk manager");
         _snapshot();
     }
 
+    /**
+     * @dev Caller with risk manager role can pause the contract
+     */
     function pause() public {
         require(hasRole(RISK_MANAGER_ROLE, _msgSender()), "Caller is not a risk manager");
         _pause();
     }
 
+    /**
+     * @dev Caller with risk manager role can unpause the contract
+     */
     function unpause() public {
         require(hasRole(RISK_MANAGER_ROLE, _msgSender()), "Caller is not a risk manager");
         _unpause();
     } 
 
+    /**
+     * @dev See {ERC20-transferFrom}.
+     * Note:
+     * - Amount of token need to be in format: _value *10^18
+     */
     function transfer(address _to, uint256 _value) override public returns (bool success) {      
         uint256 senderAvailableBalance = balanceOf(_msgSender()) - getTotalLockedBalance(_msgSender());
         require(_value <= senderAvailableBalance, "Transfer amount exceeds locked balance");
@@ -79,6 +106,11 @@ contract HTRAXToken is ERC20, ERC20Snapshot, Ownable, Pausable, AccessControl, H
         return super.transfer(_to, _value);
     }     
 
+    /**
+     * @dev See {ERC20-transferFrom}.
+     * Note:
+     * - Amount of token need to be in format: _value *10^18     
+     */
     function transferFrom(address _from, address _to, uint256 _value) override public returns (bool success) {
         uint256 senderAvailableBalance = balanceOf(_from) - getTotalLockedBalance(_msgSender());
         require(_value <= senderAvailableBalance, "Transfer amount exceeds locked balance");
@@ -86,6 +118,10 @@ contract HTRAXToken is ERC20, ERC20Snapshot, Ownable, Pausable, AccessControl, H
         return super.transferFrom(_from, _to, _value);
     }
 
+    /**
+     * @dev Caller with risk manager role can add wallet to blacklist
+     * Wallets added to blacklist are no longer be able to make transactions.
+     */
     function addBlackList(address[] memory _address) public {
         require(hasRole(RISK_MANAGER_ROLE, _msgSender()), "Caller is not a risk manager");
         for (uint256 i = 0; i < _address.length; i++) {
@@ -98,6 +134,9 @@ contract HTRAXToken is ERC20, ERC20Snapshot, Ownable, Pausable, AccessControl, H
         }
     }    
 
+    /**
+     * @dev Caller with risk manager role can remove wallet from blacklist
+     */
     function removeBlackList(address[] memory _address) public {
         require(hasRole(RISK_MANAGER_ROLE, _msgSender()), "Caller is not a risk manager");
         for (uint256 i = 0; i < _address.length; i++) {
@@ -108,6 +147,15 @@ contract HTRAXToken is ERC20, ERC20Snapshot, Ownable, Pausable, AccessControl, H
         }
     }
 
+    /**
+     * @dev Caller with executor role can transfer locked tokens.
+     * - recipient: wallet address of the user where tokens needs to transfer
+     * - totalAmount: amount of token that need to be TRANSFER in format: _value *10^18   
+     * - lockedAmount: amount of token that need to be LOCKED in format: _value *10^18  
+     * - startDate: token lock start date in Unix timestamp
+     * - timeInterval: time interval of each release in Unix timestamp
+     * - tokenRelease: amount of token that need to be RELEASE at each interval in format: _value *10^18 
+     */
     function transferLockedTokens(address recipient, uint totalAmount, uint256 lockedAmount, uint128 startDate, 
     uint64 timeInterval, uint256 tokenRelease) public {
         require(hasRole(EXECUTOR_ROLE, _msgSender()), "Caller is not a executor");
@@ -115,6 +163,11 @@ contract HTRAXToken is ERC20, ERC20Snapshot, Ownable, Pausable, AccessControl, H
         transfer(recipient, totalAmount);
     }
 
+    /**
+     * @dev Caller with executor role can transfer discounted and locked tokens.
+     * - recipient: wallet address of the user where tokens needs to transfer
+     * - totalAmount: amount of token that need to be TRANSFER in format: _value *10^18
+     */
     function transferDiscountedTokens(address recipient, uint totalAmount) public {
         require(hasRole(EXECUTOR_ROLE, _msgSender()), "Caller is not a executor");
         uint256 discountedAmount = getDiscountDetails(totalAmount);
@@ -123,6 +176,9 @@ contract HTRAXToken is ERC20, ERC20Snapshot, Ownable, Pausable, AccessControl, H
         transfer(recipient, discountedAmount);
     }      
 
+    /**
+     * @dev See {ERC20-_beforeTokenTransfer}.
+     */
     function _beforeTokenTransfer(address from, address to, uint256 amount)
         internal
         whenNotPaused
