@@ -30,7 +30,14 @@ contract HTRAXToken is ERC20, ERC20Snapshot, Ownable, Pausable, AccessControl, H
         _mint(_msgSender(), 93750000 * (10 ** uint256(decimals())));
     }
 
+    /**
+     * @dev Emits an {AddedBlackList} event indicating the wallet details which blacklisted.
+     */
      event AddedBlackList(address _address);
+
+    /**
+     * @dev Emits an {RemovedBlackList} event indicating the wallet details which blacklisted.
+     */     
      event RemovedBlackList(address _address);
 
     /**
@@ -158,7 +165,7 @@ contract HTRAXToken is ERC20, ERC20Snapshot, Ownable, Pausable, AccessControl, H
      */
     function transferLockedTokens(address recipient, uint totalAmount, uint256 lockedAmount, uint128 startDate, 
     uint64 timeInterval, uint256 tokenRelease) public {
-        require(hasRole(EXECUTOR_ROLE, _msgSender()), "Caller is not a executor");
+        require(hasRole(EXECUTOR_ROLE, _msgSender()), "Caller is not an executor");
         timeLocks[recipient].push(TimeLock(totalAmount, lockedAmount, uint128(startDate), timeInterval, tokenRelease));
         transfer(recipient, totalAmount);
     }
@@ -169,7 +176,7 @@ contract HTRAXToken is ERC20, ERC20Snapshot, Ownable, Pausable, AccessControl, H
      * - totalAmount: amount of token that need to be TRANSFER in format: _value *10^18
      */
     function transferDiscountedTokens(address recipient, uint totalAmount) public {
-        require(hasRole(EXECUTOR_ROLE, _msgSender()), "Caller is not a executor");
+        require(hasRole(EXECUTOR_ROLE, _msgSender()), "Caller is not an executor");
         uint256 discountedAmount = getDiscountDetails(totalAmount);
         require(discountedAmount <= balanceOf(_msgSender()), "Transfer amount more then account balance");
         addDiscountTokenLockDetails(recipient, discountedAmount);
@@ -184,8 +191,8 @@ contract HTRAXToken is ERC20, ERC20Snapshot, Ownable, Pausable, AccessControl, H
         whenNotPaused
         override(ERC20, ERC20Snapshot)
     {
-        require(!isBlackListed[from], 'Transfers not allowed');
-        require(!isBlackListed[to], 'Transfers not allowed');
+        require(!isBlackListed[from], 'Transfer not allowed');
+        require(!isBlackListed[to], 'Transfer not allowed');
 
         super._beforeTokenTransfer(from, to, amount);       
     }         
