@@ -28,7 +28,7 @@
 
 - [`getDiscountDetails(uint256 totalAmount)`](#HTRAXTokenSale-getDiscountDetails-uint256-)
 
-# Function `getLockedBalanceLength(address account) → uint256` {#HTRAXTokenSale-getLockedBalanceLength-address-}
+# Function `getLockedBalanceLength(address account) → uint256` (#HTRAXTokenSale-getLockedBalanceLength-address-)
 
 Get count of how many times wallet address have locked tokens.
 
@@ -104,7 +104,7 @@ Caller can release locked tokens.
 
 - `account`: wallet address from where tokens need to be released
 
-# Function `getDiscountDetails(uint256 totalAmount) → uint256 discountedAmount` {#HTRAXTokenSale-getDiscountDetails-uint256-}
+# Function `getDiscountDetails(uint256 totalAmount) → uint256 discountedAmount` (#HTRAXTokenSale-getDiscountDetails-uint256-)
 
 Caller can get token discount details. 
 
