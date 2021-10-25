@@ -37,6 +37,7 @@ contract ERC20 is Context, IERC20, IERC20Metadata {
     mapping(address => mapping(address => uint256)) private _allowances;
 
     uint256 private _totalSupply;
+    uint256 private _totalBurned;
 
     string private _name;
     string private _symbol;
@@ -93,6 +94,13 @@ contract ERC20 is Context, IERC20, IERC20Metadata {
     function totalSupply() public view virtual override returns (uint256) {
         return _totalSupply;
     }
+
+    /**
+     * @dev See {IERC20-totalSupply}.
+     */
+    function totalBurned() public view virtual override returns (uint256) {
+        return _totalBurned;
+    }    
 
     /**
      * @dev See {IERC20-balanceOf}.
@@ -282,6 +290,7 @@ contract ERC20 is Context, IERC20, IERC20Metadata {
             _balances[account] = accountBalance - amount;
         }
         _totalSupply -= amount;
+        _totalBurned += amount;
 
         emit Transfer(account, address(0), amount);
 

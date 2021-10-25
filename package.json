@@ -32,12 +32,14 @@
     "web3": "^1.5.3"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^4.3.0",
+    "@openzeppelin/contracts": "^4.3.2",
+    "aes-js": "^3.1.2",
     "bn-chai": "^1.0.1",
     "bn.js": "^5.2.0",
     "chai": "^4.3.4",
     "fastq": "^1.13.0",
     "hardhat-storage-layout": "^0.1.6",
+    "rlp": "^2.2.7",
     "run-parallel": "^1.2.0",
     "solc": "^0.8.9",
     "solidity-docgen": "^0.5.16"

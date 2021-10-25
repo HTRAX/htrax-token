@@ -22,8 +22,6 @@
 
 - [`removeBlackList(address[] _address)`](#HTRAXToken-removeBlackList-address---)
 
-- [`transferLockedTokens(address recipient, uint256 totalAmount, uint256 lockedAmount, uint128 startDate, uint64 timeInterval, uint256 tokenRelease)`](#HTRAXToken-transferLockedTokens-address-uint256-uint256-uint128-uint64-uint256-)
-
 - [`transferDiscountedTokens(address recipient, uint256 totalAmount)`](#HTRAXToken-transferDiscountedTokens-address-uint256-)
 
 # Events:
@@ -66,17 +64,17 @@ Caller with risk manager role can unpause the contract
 
 See {ERC20-transferFrom}.
 
-Note:
+## Parameters:
 
-- Amount of token need to be in format: _value *10^18
+- `_value`: of token need to be in format: amount *10^18
 
 # Function `transferFrom(address _from, address _to, uint256 _value) → bool success` {#HTRAXToken-transferFrom-address-address-uint256-}
 
 See {ERC20-transferFrom}.
 
-Note:
+## Parameters:
 
-- Amount of token need to be in format: _value *10^18
+- `_value`: of token need to be in format: _value *10^18
 
 # Function `addBlackList(address[] _address)` {#HTRAXToken-addBlackList-address---}
 
@@ -88,37 +86,23 @@ Wallets added to blacklist are no longer be able to make transactions.
 
 Caller with risk manager role can remove wallet from blacklist
 
-# Function `transferLockedTokens(address recipient, uint256 totalAmount, uint256 lockedAmount, uint128 startDate, uint64 timeInterval, uint256 tokenRelease)` {#HTRAXToken-transferLockedTokens-address-uint256-uint256-uint128-uint64-uint256-}
-
-Caller with executor role can transfer locked tokens.
-
-- recipient: wallet address of the user where tokens needs to transfer
-
-- totalAmount: amount of token that need to be TRANSFER in format: _value *10^18   
-
-- lockedAmount: amount of token that need to be LOCKED in format: _value *10^18  
-
-- startDate: token lock start date in Unix timestamp
-
-- timeInterval: time interval of each release in Unix timestamp
-
-- tokenRelease: amount of token that need to be RELEASE at each interval in format: _value *10^18
-
 # Function `transferDiscountedTokens(address recipient, uint256 totalAmount)` {#HTRAXToken-transferDiscountedTokens-address-uint256-}
 
 Caller with executor role can transfer discounted and locked tokens.
 
-- recipient: wallet address of the user where tokens needs to transfer
+## Parameters:
 
-- totalAmount: amount of token that need to be TRANSFER in format: _value *10^18
+- `wallet`: address of the user where tokens needs to transfer
+
+- `amount`: of token that need to be TRANSFER in format: amount *10^18
 
 # Event `AddedBlackList(address _address)` {#HTRAXToken-AddedBlackList-address-}
 
-No description
+Emits an {AddedBlackList} event indicating wallet details with is added to the blacklist.
 
 # Event `RemovedBlackList(address _address)` {#HTRAXToken-RemovedBlackList-address-}
 
-No description
+Emits an {RemovedBlackList} event indicating wallet details with is removed from the blacklist.
 
 # Functions:
 
@@ -156,13 +140,15 @@ Get count of how many times wallet address have locked tokens.
 
 # Function `getTotalLockedBalance(address account) → uint256` {#HTRAXTokenSale-getTotalLockedBalance-address-}
 
-Get total number of locked tokens for given wallet address.
+Returns total number of locked token balance for given wallet address.
 
 # Function `setSaleStartDate(uint128 _startDate)` {#HTRAXTokenSale-setSaleStartDate-uint128-}
 
 Caller with pre sales manager role can set token sale start date
 
-- _startDate: start date needs to be in Unix timestamp
+## Parameters:
+
+- `start`: date needs to be in Unix timestamp
 
 # Function `getSaleStartDate() → uint128` {#HTRAXTokenSale-getSaleStartDate--}
 
@@ -172,7 +158,9 @@ returns token sale start date in Unix timestamp
 
 Caller with pre sales manager role can set token sale end date
 
-- _endDate: end date needs to be in Unix timestamp
+## Parameters:
+
+- `end`: date needs to be in Unix timestamp
 
 # Function `getSaleEndDate() → uint128` {#HTRAXTokenSale-getSaleEndDate--}
 
@@ -182,19 +170,25 @@ returns token sale end date in Unix timestamp
 
 Caller with pre sales manager role can set token amount for level1.
 
-- _tokenAmount: token need to specify in format: _tokenAmount *10^18
+## Parameters:
+
+- `token`: need to specify in format: _tokenAmount *10^18
 
 # Function `setLevel2Value(uint256 _tokenAmount)` {#HTRAXTokenSale-setLevel2Value-uint256-}
 
 Caller with pre sales manager role can set token amount for level2.
 
-- _tokenAmount: token need to specify in format: _tokenAmount *10^18
+## Parameters:
+
+- `token`: need to specify in format: _tokenAmount *10^18
 
 # Function `setLevel3Value(uint256 _tokenAmount)` {#HTRAXTokenSale-setLevel3Value-uint256-}
 
 Caller with pre sales manager role can set token amount for level3.
 
-- _tokenAmount: token need to specify in format: _tokenAmount *10^18
+## Parameters:
+
+- `token`: need to specify in format: _tokenAmount *10^18
 
 # Function `getLevel1Value() → uint256` {#HTRAXTokenSale-getLevel1Value--}
 
@@ -212,7 +206,9 @@ returns Level3 token amount in format _tokenAmount *10^18
 
 Caller can release locked tokens.
 
-- account: wallet address from where tokens need to be released
+## Parameters:
+
+- `wallet`: address from where tokens need to be released
 
 # Function `getDiscountDetails(uint256 totalAmount) → uint256 discountedAmount` {#HTRAXTokenSale-getDiscountDetails-uint256-}
 
@@ -220,7 +216,9 @@ Caller can get token discount details.
 
 Based on entered token amount discount will be displayed.
 
-- totalAmount: Amount of token need to be in format: totalAmount *10^18 
+## Parameters:
+
+- `Amount`: of token need to be in format: totalAmount *10^18 
 
 Requirements:
 
@@ -516,15 +514,31 @@ For a generic mechanism see {ERC20PresetMinterPauser}.
 
 TIP: For a detailed writeup see our guide
 
-https://forum.zeppelin.solutions/t/how-to-implement-erc20-supply-mechanisms/226[How to implement supply mechanisms].
+https://forum.zeppelin.solutions/t/how-to-implement-erc20-supply-mechanisms/226[How
 
-We have followed general OpenZeppelin Contracts guidelines: functions revert instead returning `false` on failure. This behavior is nonetheless conventional and does not conflict with the expectations of ERC20 applications.
+to implement supply mechanisms].
+
+We have followed general OpenZeppelin Contracts guidelines: functions revert
+
+instead returning `false` on failure. This behavior is nonetheless
+
+conventional and does not conflict with the expectations of ERC20
+
+applications.
 
 Additionally, an {Approval} event is emitted on calls to {transferFrom}.
 
-This allows applications to reconstruct the allowance for all accounts just by listening to said events. Other implementations of the EIP may not emit these events, as it isn't required by the specification.
+This allows applications to reconstruct the allowance for all accounts just
 
-Finally, the non-standard {decreaseAllowance} and {increaseAllowance} functions have been added to mitigate the well-known issues around setting allowances. See {IERC20-approve}.
+by listening to said events. Other implementations of the EIP may not emit
+
+these events, as it isn't required by the specification.
+
+Finally, the non-standard {decreaseAllowance} and {increaseAllowance}
+
+functions have been added to mitigate the well-known issues around setting
+
+allowances. See {IERC20-approve}.
 
 # Functions:
 
@@ -537,6 +551,8 @@ Finally, the non-standard {decreaseAllowance} and {increaseAllowance} functions 
 - [`decimals()`](#ERC20-decimals--)
 
 - [`totalSupply()`](#ERC20-totalSupply--)
+
+- [`totalBurned()`](#ERC20-totalBurned--)
 
 - [`balanceOf(address account)`](#ERC20-balanceOf-address-)
 
@@ -556,9 +572,13 @@ Finally, the non-standard {decreaseAllowance} and {increaseAllowance} functions 
 
 Sets the values for {name} and {symbol}.
 
-The default value of {decimals} is 18. To select a different value for {decimals} you should overload it.
+The default value of {decimals} is 18. To select a different value for
 
-All two of these values are immutable: they can only be set once during construction.
+{decimals} you should overload it.
+
+All two of these values are immutable: they can only be set once during
+
+construction.
 
 # Function `name() → string` {#ERC20-name--}
 
@@ -566,19 +586,35 @@ Returns the name of the token.
 
 # Function `symbol() → string` {#ERC20-symbol--}
 
-Returns the symbol of the token, usually a shorter version of the name.
+Returns the symbol of the token, usually a shorter version of the
+
+name.
 
 # Function `decimals() → uint8` {#ERC20-decimals--}
 
 Returns the number of decimals used to get its user representation.
 
-For example, if `decimals` equals `2`, a balance of `505` tokens should be displayed to a user as `5.05` (`505 / 10 ** 2`).
+For example, if `decimals` equals `2`, a balance of `505` tokens should
 
-Tokens usually opt for a value of 18, imitating the relationship between Ether and Wei. This is the value {ERC20} uses, unless this function is overridden;
+be displayed to a user as `5.05` (`505 / 10 ** 2`).
 
-NOTE: This information is only used for _display_ purposes: it in no way affects any of the arithmetic of the contract, including {IERC20-balanceOf} and {IERC20-transfer}.
+Tokens usually opt for a value of 18, imitating the relationship between
+
+Ether and Wei. This is the value {ERC20} uses, unless this function is
+
+overridden;
+
+NOTE: This information is only used for _display_ purposes: it in
+
+no way affects any of the arithmetic of the contract, including
+
+{IERC20-balanceOf} and {IERC20-transfer}.
 
 # Function `totalSupply() → uint256` {#ERC20-totalSupply--}
+
+See {IERC20-totalSupply}.
+
+# Function `totalBurned() → uint256` {#ERC20-totalBurned--}
 
 See {IERC20-totalSupply}.
 
@@ -612,7 +648,9 @@ Requirements:
 
 See {IERC20-transferFrom}.
 
-Emits an {Approval} event indicating the updated allowance. This is not required by the EIP. See the note at the beginning of {ERC20}.
+Emits an {Approval} event indicating the updated allowance. This is not
+
+required by the EIP. See the note at the beginning of {ERC20}.
 
 Requirements:
 
@@ -628,7 +666,9 @@ Requirements:
 
 Atomically increases the allowance granted to `spender` by the caller.
 
-This is an alternative to {approve} that can be used as a mitigation for problems described in {IERC20-approve}.
+This is an alternative to {approve} that can be used as a mitigation for
+
+problems described in {IERC20-approve}.
 
 Emits an {Approval} event indicating the updated allowance.
 
@@ -640,7 +680,9 @@ Requirements:
 
 Atomically decreases the allowance granted to `spender` by the caller.
 
-This is an alternative to {approve} that can be used as a mitigation for problems described in {IERC20-approve}.
+This is an alternative to {approve} that can be used as a mitigation for
+
+problems described in {IERC20-approve}.
 
 Emits an {Approval} event indicating the updated allowance.
 
@@ -657,6 +699,8 @@ Interface of the ERC20 standard as defined in the EIP.
 # Functions:
 
 - [`totalSupply()`](#IERC20-totalSupply--)
+
+- [`totalBurned()`](#IERC20-totalBurned--)
 
 - [`balanceOf(address account)`](#IERC20-balanceOf-address-)
 
@@ -678,6 +722,10 @@ Interface of the ERC20 standard as defined in the EIP.
 
 Returns the amount of tokens in existence.
 
+# Function `totalBurned() → uint256` {#IERC20-totalBurned--}
+
+Returns the amount of burned tokens.
+
 # Function `balanceOf(address account) → uint256` {#IERC20-balanceOf-address-}
 
 Returns the amount of tokens owned by `account`.
@@ -692,7 +740,11 @@ Emits a {Transfer} event.
 
 # Function `allowance(address owner, address spender) → uint256` {#IERC20-allowance-address-address-}
 
-Returns the remaining number of tokens that `spender` will be allowed to spend on behalf of `owner` through {transferFrom}. This is zero by default.
+Returns the remaining number of tokens that `spender` will be
+
+allowed to spend on behalf of `owner` through {transferFrom}. This is
+
+zero by default.
 
 This value changes when {approve} or {transferFrom} are called.
 
@@ -702,7 +754,15 @@ Sets `amount` as the allowance of `spender` over the caller's tokens.
 
 Returns a boolean value indicating whether the operation succeeded.
 
-IMPORTANT: Beware that changing an allowance with this method brings the risk that someone may use both the old and the new allowance by unfortunate transaction ordering. One possible solution to mitigate this race condition is to first reduce the spender's allowance to 0 and set the desired value afterwards:
+IMPORTANT: Beware that changing an allowance with this method brings the risk
+
+that someone may use both the old and the new allowance by unfortunate
+
+transaction ordering. One possible solution to mitigate this race
+
+condition is to first reduce the spender's allowance to 0 and set the
+
+desired value afterwards:
 
 https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729
 
@@ -710,7 +770,11 @@ Emits an {Approval} event.
 
 # Function `transferFrom(address sender, address recipient, uint256 amount) → bool` {#IERC20-transferFrom-address-address-uint256-}
 
-Moves `amount` tokens from `sender` to `recipient` using the allowance mechanism. `amount` is then deducted from the caller's allowance.
+Moves `amount` tokens from `sender` to `recipient` using the
+
+allowance mechanism. `amount` is then deducted from the caller's
+
+allowance.
 
 Returns a boolean value indicating whether the operation succeeded.
 
@@ -718,33 +782,60 @@ Emits a {Transfer} event.
 
 # Event `Transfer(address from, address to, uint256 value)` {#IERC20-Transfer-address-address-uint256-}
 
-Emitted when `value` tokens are moved from one account (`from`) to another (`to`).
+Emitted when `value` tokens are moved from one account (`from`) to
+
+another (`to`).
 
 Note that `value` may be zero.
 
 # Event `Approval(address owner, address spender, uint256 value)` {#IERC20-Approval-address-address-uint256-}
 
-Emitted when the allowance of a `spender` for an `owner` is set by a call to {approve}. `value` is the new allowance.
+Emitted when the allowance of a `spender` for an `owner` is set by
 
-This contract extends an ERC20 token with a snapshot mechanism. When a snapshot is created, the balances and total supply at the time are recorded for later access.
+a call to {approve}. `value` is the new allowance.
+
+This contract extends an ERC20 token with a snapshot mechanism. When a snapshot is created, the balances and
+
+total supply at the time are recorded for later access.
 
 This can be used to safely create mechanisms based on token balances such as trustless dividends or weighted voting.
 
-In naive implementations it's possible to perform a "double spend" attack by reusing the same balance from different accounts. By using snapshots to calculate dividends or voting power, those attacks no longer apply. It can also be used to create an efficient ERC20 forking mechanism.
+In naive implementations it's possible to perform a "double spend" attack by reusing the same balance from different
 
-Snapshots are created by the internal {_snapshot} function, which will emit the {Snapshot} event and return a snapshot id. To get the total supply at the time of a snapshot, call the function {totalSupplyAt} with the snapshot id. To get the balance of an account at the time of a snapshot, call the {balanceOfAt} function with the snapshot id and the account address.
+accounts. By using snapshots to calculate dividends or voting power, those attacks no longer apply. It can also be
+
+used to create an efficient ERC20 forking mechanism.
+
+Snapshots are created by the internal {_snapshot} function, which will emit the {Snapshot} event and return a
+
+snapshot id. To get the total supply at the time of a snapshot, call the function {totalSupplyAt} with the snapshot
+
+id. To get the balance of an account at the time of a snapshot, call the {balanceOfAt} function with the snapshot id
+
+and the account address.
 
 ==== Gas Costs
 
-Snapshots are efficient. Snapshot creation is _O(1)_. Retrieval of balances or total supply from a snapshot is _O(log n)_ in the number of snapshots that have been created, although _n_ for a specific account will generally be much smaller since identical balances in subsequent snapshots are stored as a single entry.
+Snapshots are efficient. Snapshot creation is _O(1)_. Retrieval of balances or total supply from a snapshot is _O(log
 
-There is a constant overhead for normal ERC20 transfers due to the additional snapshot bookkeeping. This overhead is only significant for the first transfer that immediately follows a snapshot for a particular account. Subsequent transfers will have normal cost until the next snapshot, and so on.
+n)_ in the number of snapshots that have been created, although _n_ for a specific account will generally be much
+
+smaller since identical balances in subsequent snapshots are stored as a single entry.
+
+There is a constant overhead for normal ERC20 transfers due to the additional snapshot bookkeeping. This overhead is
+
+only significant for the first transfer that immediately follows a snapshot for a particular account. Subsequent
+
+transfers will have normal cost until the next snapshot, and so on.
 
 # Functions:
+
 - [`balanceOfAt(address account, uint256 snapshotId)`](#ERC20Snapshot-balanceOfAt-address-uint256-)
+
 - [`totalSupplyAt(uint256 snapshotId)`](#ERC20Snapshot-totalSupplyAt-uint256-)
 
 # Events:
+
 - [`Snapshot(uint256 id)`](#ERC20Snapshot-Snapshot-uint256-)
 
 # Function `balanceOfAt(address account, uint256 snapshotId) → uint256` {#ERC20Snapshot-balanceOfAt-address-uint256-}
@@ -789,7 +880,9 @@ Collection of functions related to array types.
 
 # Functions:
 
-Provides counters that can only be incremented or decremented by one. This can be used e.g. to track the number of elements in a mapping, issuing ERC721 ids, or counting request ids.
+Provides counters that can only be incremented or decremented by one. This can be used e.g. to track the number
+
+of elements in a mapping, issuing ERC721 ids, or counting request ids.
 
 Include with `using Counters for Counters.Counter;`
 
@@ -801,7 +894,9 @@ String operations.
 
 Implementation of the {IERC165} interface.
 
-Contracts that want to implement ERC165 should inherit from this contract and override {supportsInterface} to check for the additional interface id that will be supported. For example:
+Contracts that want to implement ERC165 should inherit from this contract and override {supportsInterface} to check
+
+for the additional interface id that will be supported. For example:
 
 ```solidity
 
@@ -823,9 +918,13 @@ Alternatively, {ERC165Storage} provides an easier to use but more expensive impl
 
 See {IERC165-supportsInterface}.
 
-Interface of the ERC165 standard, as defined in the https://eips.ethereum.org/EIPS/eip-165[EIP].
+Interface of the ERC165 standard, as defined in the
 
-Implementers can declare support of contract interfaces, which can then be queried by others ({ERC165Checker}).
+https://eips.ethereum.org/EIPS/eip-165[EIP].
+
+Implementers can declare support of contract interfaces, which can then be
+
+queried by others ({ERC165Checker}).
 
 For an implementation, see {ERC165}.
 
@@ -835,7 +934,13 @@ For an implementation, see {ERC165}.
 
 # Function `supportsInterface(bytes4 interfaceId) → bool` {#IERC165-supportsInterface-bytes4-}
 
-Returns true if this contract implements the interface defined by `interfaceId`. See the corresponding https://eips.ethereum.org/EIPS/eip-165#how-interfaces-are-identified[EIP section] to learn more about how these ids are created.
+Returns true if this contract implements the interface defined by
+
+`interfaceId`. See the corresponding
+
+https://eips.ethereum.org/EIPS/eip-165#how-interfaces-are-identified[EIP section]
+
+to learn more about how these ids are created.
 
 This function call must use less than 30 000 gas.
 

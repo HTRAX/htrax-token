@@ -6,7 +6,7 @@ import "./access/AccessControl.sol";
 
 abstract contract HTRAXTokenSale is AccessControl {
     bytes32 public constant PRESALES_MANAGER_ROLE = keccak256("PRESALES_MANAGER_ROLE");
-    // Configuration of pre ico conditions
+
     uint128 saleStartDate;
     uint128 saleEndDate;
     uint256 level1;
@@ -14,11 +14,9 @@ abstract contract HTRAXTokenSale is AccessControl {
     uint256 level3;
     
     struct TimeLock {
-        uint256 totalAmount;
         uint256 lockedAmount;
-        uint128 startDate; // Unix Epoch timestamp
-        uint64 timeInterval; // Unix Epoch timestamp
-        uint256 tokenRelease;
+        uint128 startDate;
+        uint64 timeInterval;
     }
     mapping (address => TimeLock[]) internal timeLocks;
 
@@ -30,11 +28,11 @@ abstract contract HTRAXTokenSale is AccessControl {
     }
 
     /**
-     * @dev Get total number of locked tokens for given wallet address.
+     * @dev Returns total number of locked token balance for given wallet address.
      */ 
     function getTotalLockedBalance(address account) public view virtual returns (uint256) {
-        uint256 lockedBalance = 0;
-        for(uint i = 0 ; i<getLockedBalanceLength(account); i++) {
+        uint256 lockedBalance;
+        for(uint i = 0; i < timeLocks[account].length; i++) {
             lockedBalance += timeLocks[account][i].lockedAmount;
         }        
         return lockedBalance;
@@ -42,10 +40,9 @@ abstract contract HTRAXTokenSale is AccessControl {
 
     /**
      * @dev Caller with pre sales manager role can set token sale start date
-     * - _startDate: start date needs to be in Unix timestamp
+     * @param _startDate: start date needs to be in Unix timestamp
      */
-    function setSaleStartDate(uint128 _startDate) public {
-        require(hasRole(PRESALES_MANAGER_ROLE, _msgSender()), "Caller is not a presales manager");
+    function setSaleStartDate(uint128 _startDate) public onlyRole(PRESALES_MANAGER_ROLE) {
         saleStartDate = _startDate;
     }
 
@@ -58,10 +55,9 @@ abstract contract HTRAXTokenSale is AccessControl {
 
     /**
      * @dev Caller with pre sales manager role can set token sale end date
-     * - _endDate: end date needs to be in Unix timestamp
+     * @param _endDate: end date needs to be in Unix timestamp
      */
-    function setSaleEndDate(uint128 _endDate) public {
-        require(hasRole(PRESALES_MANAGER_ROLE, _msgSender()), "Caller is not a presales manager");
+    function setSaleEndDate(uint128 _endDate) public onlyRole(PRESALES_MANAGER_ROLE) {
         saleEndDate = _endDate;
     }
 
@@ -74,28 +70,25 @@ abstract contract HTRAXTokenSale is AccessControl {
 
     /**
      * @dev Caller with pre sales manager role can set token amount for level1.
-     * - _tokenAmount: token need to specify in format: _tokenAmount *10^18
+     * @param _tokenAmount: token need to specify in format: _tokenAmount *10^18
      */
-    function setLevel1Value(uint256 _tokenAmount) public {
-        require(hasRole(PRESALES_MANAGER_ROLE, _msgSender()), "Caller is not a presales manager");
+    function setLevel1Value(uint256 _tokenAmount) public onlyRole(PRESALES_MANAGER_ROLE) {
         level1 = _tokenAmount;
     }    
     
     /**
      * @dev Caller with pre sales manager role can set token amount for level2.
-     * - _tokenAmount: token need to specify in format: _tokenAmount *10^18
+     * @param _tokenAmount: token need to specify in format: _tokenAmount *10^18
      */    
-    function setLevel2Value(uint256 _tokenAmount) public {
-        require(hasRole(PRESALES_MANAGER_ROLE, _msgSender()), "Caller is not a presales manager");
+    function setLevel2Value(uint256 _tokenAmount) public onlyRole(PRESALES_MANAGER_ROLE) {
         level2 = _tokenAmount;
     }
 
     /**
      * @dev Caller with pre sales manager role can set token amount for level3.
-     * - _tokenAmount: token need to specify in format: _tokenAmount *10^18
+     * @param _tokenAmount: token need to specify in format: _tokenAmount *10^18
      */
-    function setLevel3Value(uint256 _tokenAmount) public {
-        require(hasRole(PRESALES_MANAGER_ROLE, _msgSender()), "Caller is not a presales manager");
+    function setLevel3Value(uint256 _tokenAmount) public onlyRole(PRESALES_MANAGER_ROLE) {
         level3 = _tokenAmount;
     }
 
@@ -122,27 +115,22 @@ abstract contract HTRAXTokenSale is AccessControl {
 
     /**
      * @dev Caller can release locked tokens.
-     * - account: wallet address from where tokens need to be released
-     */     
+     * @param account: wallet address from where tokens need to be released
+     */
     function releaseLockedTokens(address account) public {
-        for(uint i = 0; i < getLockedBalanceLength(account); i++) {        
-            unchecked {
-                uint256 timeDiff = block.timestamp - uint256(timeLocks[account][i].startDate);
-                uint256 steps = (timeDiff / uint256(timeLocks[account][i].timeInterval));
-                uint256 unlockableAmount = (uint256(timeLocks[account][i].tokenRelease) * steps);
-                if (unlockableAmount >= timeLocks[account][i].totalAmount) {
-                    timeLocks[account][i].lockedAmount = 0;
-                } else {
-                    timeLocks[account][i].lockedAmount = timeLocks[account][i].totalAmount - unlockableAmount;
-                }
+        uint256 timeDiff = 0;
+        for(uint i = 0; i < getLockedBalanceLength(account); i++) { 
+            timeDiff = block.timestamp - uint256(timeLocks[account][i].startDate);       
+            if(timeDiff >= uint256(timeLocks[account][i].timeInterval)) {
+                timeLocks[account][i].lockedAmount = 0;
             }
         }
-    }
+    }           
 
     /**
      * @dev Caller can get token discount details. 
      * Based on entered token amount discount will be displayed.
-     * - totalAmount: Amount of token need to be in format: totalAmount *10^18 
+     * @param totalAmount: Amount of token need to be in format: totalAmount *10^18 
      *
      * Requirements:
      *
@@ -157,11 +145,11 @@ abstract contract HTRAXTokenSale is AccessControl {
         if(block.timestamp >= saleStartDate && block.timestamp <= saleEndDate)
         {
             if (totalAmount >= level1 && totalAmount < level2) {
-                discountedAmount = totalAmount + (totalAmount*10)/100;
+                discountedAmount = totalAmount + (totalAmount/10);
             } else if (totalAmount >= level2 && totalAmount < level3) {
-                discountedAmount = totalAmount + (totalAmount*20)/100;
+                discountedAmount = totalAmount + (totalAmount/5);
             } else if (totalAmount >= level3) {
-                discountedAmount = totalAmount + (totalAmount*30)/100;
+                discountedAmount = totalAmount + ((totalAmount-(totalAmount/10))/3);
             } else {
                 discountedAmount = totalAmount;
             }
@@ -174,8 +162,8 @@ abstract contract HTRAXTokenSale is AccessControl {
 
     /**
      * @dev Internal call to transfer locked tokens.
-     * - recipient: wallet address of the user where tokens needs to transfer
-     * - totalAmount: amount of token that need to be TRANSFER in format: _value *10^18
+     * @param recipient: wallet address of the user where tokens needs to transfer
+     * @param tokenAmount: amount of token that need to be TRANSFER in format: _value *10^18
      *
      * - Lock 10% of total token amount for 6 months from transfer date
      * - Lock 30% of total token amount for 12 months from transfer date
@@ -183,24 +171,22 @@ abstract contract HTRAXTokenSale is AccessControl {
      * - Lock 30% of total token amount for 24 months from transfer date
      */
     function addDiscountTokenLockDetails(address recipient, uint256 tokenAmount) internal {
-        // Lock 10% of total token amount for 6 months from transfer date
-        uint256 lockedAmount10 = (tokenAmount*10)/100;
-        timeLocks[recipient].push(TimeLock(lockedAmount10, lockedAmount10, 
-        uint128(block.timestamp), 15778463, lockedAmount10));
-
+        
+        // 10% of tokens
+        uint256 lockedAmount10 = (tokenAmount/10);
         // Devide rest 90% of tokens to three equal amount for further lock 
         uint256 lockedAmount30 = ((tokenAmount-lockedAmount10)/3);
+                
+        // Lock 10% of total token amount for 6 months from transfer date
+        timeLocks[recipient].push(TimeLock(lockedAmount10, uint128(block.timestamp), 15778463));
 
         // Lock 30% of total token amount for 12 months from transfer date
-        timeLocks[recipient].push(TimeLock(lockedAmount30, lockedAmount30, 
-        uint128(block.timestamp), 31556926, lockedAmount30));
+        timeLocks[recipient].push(TimeLock(lockedAmount30, uint128(block.timestamp), 31556926));
 
         // Lock 30% of total token amount for 18 months from transfer date
-        timeLocks[recipient].push(TimeLock(lockedAmount30, lockedAmount30, 
-        uint128(block.timestamp), 47335389, lockedAmount30));
+        timeLocks[recipient].push(TimeLock(lockedAmount30, uint128(block.timestamp), 47335389));
 
         // Lock 30% of total token amount for 24 months from transfer date
-        timeLocks[recipient].push(TimeLock(lockedAmount30, lockedAmount30, 
-        uint128(block.timestamp), 63113852, lockedAmount30));                
-    }    
+        timeLocks[recipient].push(TimeLock(lockedAmount30, uint128(block.timestamp), 63113852));                
+    }
 }

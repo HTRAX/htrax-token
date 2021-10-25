@@ -66,48 +66,90 @@ describe("Token burn function", function () {
     expect(await htraxToken.hasRole(BURNER_ROLE, user_burner.address)).to.equal(true);
   });   
   it("Transfer 100 HTRAX tokens to user_burner", async function() {
-    await htraxToken.transfer(user_burner.address, 100);
+    await htraxToken.transfer(user_burner.address, '100000000000000000000');
     const user_burner_balance = await htraxToken.balanceOf(user_burner.address);    
-    expect(user_burner_balance.toString()).to.equal('100');
+    expect(user_burner_balance.toString()).to.equal('100000000000000000000');
   });
   it("Burn 50 HTRAX tokens by user_burner", async function() {
     await htraxToken.grantRole(BURNER_ROLE, user_burner.address);
-    await htraxToken.transfer(user_burner.address, 100);
+    await htraxToken.transfer(user_burner.address, '100000000000000000000');
 
-    await htraxToken.connect(user_burner).burn(50);
+    await htraxToken.connect(user_burner).burn('50000000000000000000');
     const user_burner_balance = await htraxToken.balanceOf(
       user_burner.address
     );    
-    expect(user_burner_balance.toString()).to.equal('50');
+    expect(user_burner_balance.toString()).to.equal('50000000000000000000');
     
     const totalSupply = await htraxToken.totalSupply();
-    expect(totalSupply.toString()).to.equal('93749999999999999999999950');
-  });
-  
-  it("Mint 50 HTRAX tokens by user_minter", async function() {
-    await htraxToken.grantRole(MINTER_ROLE, user_minter.address);
-    await htraxToken.connect(user_minter).mint(user_minter.address, 50);
-
-    const totalSupply = await htraxToken.totalSupply();
-    expect(totalSupply.toString()).to.equal('93750000000000000000000050');
+    expect(totalSupply.toString()).to.equal('93749950000000000000000000');
   });
 });
 
-describe("Token pause function", function () {  
-  it("Check transfering tokens when tokens are pausable", async function() {
+describe("Token mint function", function () { 
+  beforeEach(async function () {    
+    await htraxToken.grantRole(MINTER_ROLE, user_minter.address);
+    await htraxToken.grantRole(BURNER_ROLE, user_minter.address);    
+  });
+  it("Mint HTRAX tokens for each release by user_minter", async function() {
+    const cap = await htraxToken.cap();
+        
+    // release 1    
+    const totalSupplyRelease1 = await htraxToken.totalSupply();
+    expect(totalSupplyRelease1.toString()).to.equal('93750000000000000000000000');
+
+    // release 2
+    await htraxToken.connect(user_minter).mint(user_minter.address, '93750000000000000000000000');
+    const totalSupplyRelease2 = await htraxToken.totalSupply();
+    expect(totalSupplyRelease2.toString()).to.equal('187500000000000000000000000');
+
+    // release 3
+    await htraxToken.connect(user_minter).mint(user_minter.address, '93750000000000000000000000');
+    const totalSupplyRelease3 = await htraxToken.totalSupply();
+    expect(totalSupplyRelease3.toString()).to.equal('281250000000000000000000000');
+    
+    // release 4
+    await htraxToken.connect(user_minter).mint(user_minter.address, '93750000000000000000000000');
+    const totalSupplyRelease4 = await htraxToken.totalSupply();
+    expect(totalSupplyRelease4.toString()).to.equal(cap.toString());
+  });
+  it("Minter try to mint more tokens then allowed --> It must give an error", async function() { 
+    const cap = await htraxToken.cap();
+
+    // mint all tokens
+    await htraxToken.connect(user_minter).mint(user_minter.address, '93750000000000000000000000');
+    await htraxToken.connect(user_minter).mint(user_minter.address, '93750000000000000000000000');
+    await htraxToken.connect(user_minter).mint(user_minter.address, '93750000000000000000000000');
+    const totalSupplyReleaseAll = await htraxToken.totalSupply();
+    expect(totalSupplyReleaseAll.toString()).to.equal(cap.toString());
+    
+    // mint additional 100 HTRAX tokens
+    //await utils.shouldThrow(await htraxToken.connect(user_minter).mint(user_minter.address, '100000000000000000000'));
+    
+    // burn tokens
+    await htraxToken.connect(user_minter).burn('100000000000000000000');
+    const totalSupplyAfterBurned100 = await htraxToken.totalSupply();
+    expect(totalSupplyAfterBurned100.toString()).to.equal('374999900000000000000000000');
+
+    const totalBurned = await htraxToken.totalBurned();
+    expect(totalBurned.toString()).to.equal('100000000000000000000');
+
+    // mint burned tokens
+    //await utils.shouldThrow(await htraxToken.connect(user_minter).mint(user_minter.address, '100000000000000000000'));
+  });
+});
+
+describe("Token pause function", function () { 
+  beforeEach(async function () {
     await htraxToken.grantRole(RISK_MANAGER_ROLE, user_risk_manager.address);
     expect(await htraxToken.hasRole(RISK_MANAGER_ROLE, user_risk_manager.address)).to.equal(true);
     await htraxToken.connect(user_risk_manager).pause();
-    expect(await htraxToken.connect(user_risk_manager).paused()).to.be.true;
-
+    expect(await htraxToken.connect(user_risk_manager).paused()).to.be.true;   
+  });   
+  it("Check transfering tokens when tokens are pausable", async function() {
     await utils.shouldThrow(htraxToken.transfer(addr1.address, 100));
   }); 
   
   it("Check transfering tokens when tokens are pausable and then not pausable", async function() {
-    await htraxToken.grantRole(RISK_MANAGER_ROLE, user_risk_manager.address);
-    expect(await htraxToken.hasRole(RISK_MANAGER_ROLE, user_risk_manager.address)).to.equal(true);
-    await htraxToken.connect(user_risk_manager).pause();
-    expect(await htraxToken.connect(user_risk_manager).paused()).to.be.true;
     await utils.shouldThrow(htraxToken.transfer(addr1.address, 100));
     let addr1_balance = await htraxToken.balanceOf(addr1.address);      
     expect(addr1_balance.toString()).to.equal('0');   
@@ -118,83 +160,4 @@ describe("Token pause function", function () {
     addr1_balance = await htraxToken.balanceOf(addr1.address);    
     expect(addr1_balance.toString()).to.equal('100');    
   });   
-});
-
-describe("Token timelock function", function () {  
-  it("Send timelocked token to addr1", async function() {
-    await htraxToken.transfer(user_executor_role.address, 69443);
-
-    await htraxToken.grantRole(EXECUTOR_ROLE, user_executor_role.address);
-    await htraxToken.connect(user_executor_role).transferDiscountedTokens(addr1.address, 69443);
-    const addr1_balance = await htraxToken.balanceOf(addr1.address);    
-    expect(addr1_balance.toString()).to.equal('69443');
-
-    let resultTotalTokenLock = await htraxToken.connect(addr1).getTotalLockedBalance(addr1.address);
-    expect(resultTotalTokenLock.toString()).to.equal('69443');
-  });
-
-  it("Release timelocked token from addr1", async function() {
-    await htraxToken.transfer(user_executor_role.address, 69443);
-
-    await htraxToken.grantRole(EXECUTOR_ROLE, user_executor_role.address);
-    await htraxToken.connect(user_executor_role).transferDiscountedTokens(addr1.address, 69443);
-    const addr1_balance = await htraxToken.balanceOf(addr1.address);    
-    expect(addr1_balance.toString()).to.equal('69443');
-
-    const resultTotalTokenLock = await htraxToken.connect(addr1).getTotalLockedBalance(addr1.address);
-    expect(resultTotalTokenLock.toString()).to.equal('69443');
-        
-    let resultLockedBalanceLength = await htraxToken.connect(addr1).getLockedBalanceLength(addr1.address);
-    expect(resultLockedBalanceLength.toString()).to.equal('4');
-
-    console.log ("[6 Months] ---------------------------------------------");
-    console.log ("[0 Months] Time now: " + await time.latest());
-    await time.increase(15778463);
-    console.log ("[6 Months] Time after increase: " + await time.latest());
-    await htraxToken.connect(addr1).releaseLockedTokens(addr1.address);
-    const resultTotalTokenLock6 = await htraxToken.connect(addr1).getTotalLockedBalance(addr1.address)
-    expect(resultTotalTokenLock6.toString()).to.equal('62499');
-    
-    console.log ("[12 Months] ---------------------------------------------");    
-    console.log ("[6 Months] Time now: " + await time.latest());
-    await time.increase(15778463);
-    console.log ("[12 Months] Time after increase: " + await time.latest());
-    await htraxToken.connect(addr1).releaseLockedTokens(addr1.address);
-    const resultTotalTokenLock12 = await htraxToken.connect(addr1).getTotalLockedBalance(addr1.address);
-    expect(resultTotalTokenLock12.toString()).to.equal('41666'); 
-    
-    console.log ("[18 Months] ---------------------------------------------");    
-    console.log ("[12 Months] Time now: " + await time.latest());
-    await time.increase(15778463);
-    console.log ("[18 Months] Time after increase: " + await time.latest());
-    await htraxToken.connect(addr1).releaseLockedTokens(addr1.address);
-    const resultTotalTokenLock18 = await htraxToken.connect(addr1).getTotalLockedBalance(addr1.address);
-    expect(resultTotalTokenLock18.toString()).to.equal('20833');   
-    
-    console.log ("[24 Months] ---------------------------------------------");    
-    console.log ("[18 Months] Time now: " + await time.latest());
-    await time.increase(15778463);
-    console.log ("[24 Months] Time after increase: " + await time.latest());
-    await htraxToken.connect(addr1).releaseLockedTokens(addr1.address);
-    const resultTotalTokenLock24 = await htraxToken.connect(addr1).getTotalLockedBalance(addr1.address);
-    expect(resultTotalTokenLock24.toString()).to.equal('0');
-
-    const totalBalance10Percentage = (resultTotalTokenLock.mul(10).div(100));
-    const totalBalance6 = (totalBalance10Percentage).add(resultTotalTokenLock6);
-    expect(totalBalance6.toString()).to.equal('69443');
-
-    /*const totalBalance30Percentage = resultTotalTokenLock.mul(30).div(100);
-    const totalBalance24 = totalBalance10Percentage.add(totalBalance30Percentage).add(totalBalance30Percentage).add(totalBalance30Percentage);
-    expect(totalBalance24.toString()).to.equal('69443');*/
-    /*
-    await time.increase(31556926);
-    await htraxToken.connect(addr1).releaseLockedTokens(addr1.address);
-    resultTotalTokenLock = await htraxToken.connect(addr1).getTotalLockedBalance(addr1.address);
-    expect(resultTotalTokenLock.toString()).to.equal('8000');
-
-    await time.increase(3600);
-    await htraxToken.connect(addr1).releaseLockedTokens(addr1.address);
-    resultTotalTokenLock = await htraxToken.connect(addr1).getTotalLockedBalance(addr1.address);
-    expect(resultTotalTokenLock.toString()).to.equal('7000');*/
-  });
 });
