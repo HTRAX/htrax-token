@@ -139,7 +139,7 @@ abstract contract HTRAXTokenSale is AccessControl {
      *     
      * - `level1` needs to be configured. See {HTRAXTokenSale-setLevel1Value}
      * - `level2` needs to be configured. See {HTRAXTokenSale-setLevel2Value}
-     * - `level3` needs to be configured. See {HTRAXTokenSale-setLevel2Value}
+     * - `level3` needs to be configured. See {HTRAXTokenSale-setLevel3Value}
      */  
     function getDiscountDetails(uint totalAmount) public view virtual returns (uint256 discountedAmount){
         if(block.timestamp >= saleStartDate && block.timestamp <= saleEndDate)
