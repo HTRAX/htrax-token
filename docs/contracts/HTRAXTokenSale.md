@@ -42,7 +42,7 @@ Caller with pre sales manager role can set token sale start date
 
 ## Parameters:
 
-- `start`: date needs to be in Unix timestamp
+- `_startDate`: start date needs to be in Unix timestamp
 
 # Function `getSaleStartDate() → uint128` {#HTRAXTokenSale-getSaleStartDate--}
 
@@ -54,7 +54,7 @@ Caller with pre sales manager role can set token sale end date
 
 ## Parameters:
 
-- `end`: date needs to be in Unix timestamp
+- `_endDate`: end date needs to be in Unix timestamp
 
 # Function `getSaleEndDate() → uint128` {#HTRAXTokenSale-getSaleEndDate--}
 
@@ -66,7 +66,7 @@ Caller with pre sales manager role can set token amount for level1.
 
 ## Parameters:
 
-- `token`: need to specify in format: _tokenAmount *10^18
+- `_tokenAmount`: token need to specify in format: _tokenAmount *10^18
 
 # Function `setLevel2Value(uint256 _tokenAmount)` {#HTRAXTokenSale-setLevel2Value-uint256-}
 
@@ -74,7 +74,7 @@ Caller with pre sales manager role can set token amount for level2.
 
 ## Parameters:
 
-- `token`: need to specify in format: _tokenAmount *10^18
+- `_tokenAmount`: token need to specify in format: _tokenAmount *10^18
 
 # Function `setLevel3Value(uint256 _tokenAmount)` {#HTRAXTokenSale-setLevel3Value-uint256-}
 
@@ -82,7 +82,7 @@ Caller with pre sales manager role can set token amount for level3.
 
 ## Parameters:
 
-- `token`: need to specify in format: _tokenAmount *10^18
+- `_tokenAmount`: token need to specify in format: _tokenAmount *10^18
 
 # Function `getLevel1Value() → uint256` {#HTRAXTokenSale-getLevel1Value--}
 
@@ -102,7 +102,7 @@ Caller can release locked tokens.
 
 ## Parameters:
 
-- `wallet`: address from where tokens need to be released
+- `account`: wallet address from where tokens need to be released
 
 # Function `getDiscountDetails(uint256 totalAmount) → uint256 discountedAmount` {#HTRAXTokenSale-getDiscountDetails-uint256-}
 
@@ -112,7 +112,7 @@ Based on entered token amount discount will be displayed.
 
 ## Parameters:
 
-- `Amount`: of token need to be in format: totalAmount *10^18 
+- `totalAmount`: Amount of token need to be in format: totalAmount *10^18 
 
 Requirements:
 
