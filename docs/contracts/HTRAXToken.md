@@ -1,5 +1,7 @@
 # Functions:
 
+- <a name="[`mint(address account, uint256 amount)`]"></a>
+- 
 - [`mint(address account, uint256 amount)`](#HTRAXToken-mint-address-uint256-)
 
 - [`cap()`](#HTRAXToken-cap--)
