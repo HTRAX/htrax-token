@@ -17,7 +17,6 @@ contract HTRAXToken is ERC20, ERC20Snapshot, Ownable, Pausable, AccessControl, H
 
     uint256 private immutable _cap = 375000000 * (10 ** uint256(decimals()));
     uint256 private immutable _release = 93750000 * (10 ** uint256(decimals()));
-    uint256 private burnedTokens;
     string private _symbol = "HTRAX";
     string private _name = "HTRAX Token";
 

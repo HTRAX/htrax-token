@@ -4,7 +4,7 @@
  require('@nomiclabs/hardhat-ethers');
  require('@nomiclabs/hardhat-etherscan');
  require("@nomiclabs/hardhat-web3");
- //require("hardhat-gas-reporter");
+ require("hardhat-gas-reporter");
  require('hardhat-storage-layout');
 
 const { bsctestnetPrivateKey } = require('./.secret/secrets.json');
@@ -50,11 +50,11 @@ const { etherscanAPIkey } = require('./.secret/secrets.json');
      optimizer: {
        enabled: true
      },
-     /*outputSelection: {
+     outputSelection: {
       "*": {
           "*": ["storageLayout"],
       },
-    }*/
+    }
     }
    },
    paths: {

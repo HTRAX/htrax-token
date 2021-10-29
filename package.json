@@ -1,5 +1,5 @@
 {
-  "name": "htrax-token-testnet",
+  "name": "htrax-token",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -9,15 +9,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/H-Trax/htrax-token-testnet.git"
+    "url": "git+https://github.com/HTrax/htrax-token.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/H-Trax/htrax-token-testnet/issues"
+    "url": "https://github.com/HTrax/htrax-token/issues"
   },
-  "homepage": "https://github.com/H-Trax/htrax-token-testnet#readme",
+  "homepage": "https://github.com/HTrax/htrax-token#readme",
   "devDependencies": {
     "@digix/doxity": "^0.5.2",
     "@nomiclabs/hardhat-ethers": "^2.0.2",

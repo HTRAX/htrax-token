@@ -112,3 +112,5 @@ artifacts/
 #Cache Folder
 cache/
 
+.vscode
+.gitbook.yaml

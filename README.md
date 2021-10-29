@@ -1,1 +1,1 @@
-# htrax-token-testnet
+# htrax-token
