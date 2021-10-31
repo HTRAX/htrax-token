@@ -24,6 +24,8 @@
 
 - [`transferDiscountedTokens(address recipient, uint256 totalAmount)`](#HTRAXToken-transferDiscountedTokens-address-uint256-)
 
+- [`withdrawBalance(address _tokenContract, uint256 _value)`](#HTRAXToken-withdrawBalance-address-uint256-)
+
 # Events:
 
 - [`AddedBlackList(address _address)`](#HTRAXToken-AddedBlackList-address-)
@@ -95,6 +97,16 @@ Caller with executor role can transfer discounted and locked tokens.
 - `wallet`: address of the user where tokens needs to transfer
 
 - `amount`: of token that need to be TRANSFER in format: amount *10^18
+
+# Function `withdrawBalance(address _tokenContract, uint256 _value)` {#HTRAXToken-withdrawBalance-address-uint256-}
+
+Caller with executor role can withdraw token from smart contract to own address
+
+## Parameters:
+
+- `_tokenContract`: is address of the token
+
+- `_value`: of token need to be in format: _value *10^18
 
 # Event `AddedBlackList(address _address)` {#HTRAXToken-AddedBlackList-address-}
 

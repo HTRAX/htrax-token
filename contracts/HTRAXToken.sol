@@ -102,7 +102,7 @@ contract HTRAXToken is ERC20, ERC20Snapshot, Ownable, Pausable, AccessControl, H
      */
     function transfer(address _to, uint256 _value) override public returns (bool success) {      
         uint256 senderAvailableBalance = balanceOf(_msgSender()) - getTotalLockedBalance(_msgSender());
-        require(_value <= senderAvailableBalance, "Transfer amount exceeds locked balance");
+        require(_value <= senderAvailableBalance, "Transfer amount exceeds available balance");
 
         return super.transfer(_to, _value);
     }     
@@ -113,7 +113,7 @@ contract HTRAXToken is ERC20, ERC20Snapshot, Ownable, Pausable, AccessControl, H
      */
     function transferFrom(address _from, address _to, uint256 _value) override public returns (bool success) {
         uint256 senderAvailableBalance = balanceOf(_from) - getTotalLockedBalance(_msgSender());
-        require(_value <= senderAvailableBalance, "Transfer amount exceeds locked balance");
+        require(_value <= senderAvailableBalance, "Transfer amount exceeds available balance");
 
         return super.transferFrom(_from, _to, _value);
     }
@@ -143,7 +143,7 @@ contract HTRAXToken is ERC20, ERC20Snapshot, Ownable, Pausable, AccessControl, H
                 emit RemovedBlackList(_address[i]);
             }
         }
-    }
+    }    
 
     /**
      * @dev Caller with executor role can transfer discounted and locked tokens.
@@ -152,10 +152,22 @@ contract HTRAXToken is ERC20, ERC20Snapshot, Ownable, Pausable, AccessControl, H
      */
     function transferDiscountedTokens(address recipient, uint totalAmount) public onlyRole(EXECUTOR_ROLE) {
         uint256 discountedAmount = getDiscountDetails(totalAmount);
-        require(discountedAmount <= balanceOf(_msgSender()), "Transfer amount more then account balance");
+        require(discountedAmount <= balanceOf(_msgSender()), "Transfer amount exceeds available balance");
         addDiscountTokenLockDetails(recipient, discountedAmount);
         transfer(recipient, discountedAmount);
-    }      
+    }
+
+    /**
+     * @dev Caller with executor role can withdraw token from smart contract to own address
+     * @param _tokenContract is address of the token
+     * @param _value of token need to be in format: _value *10^18
+     */
+    function withdrawBalance(address _tokenContract, uint256 _value) public onlyRole(EXECUTOR_ROLE) {
+        IERC20 tokenContract = IERC20(_tokenContract);
+        require(_value <= tokenContract.balanceOf(address(this)), "Transfer amount exceeds available balance");
+        
+        tokenContract.transfer(msg.sender, _value);
+    }         
 
     /**
      * @dev See {ERC20-_beforeTokenTransfer}.
